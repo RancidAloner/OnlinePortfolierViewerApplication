@@ -120,7 +120,7 @@ body {
     object-fit: contain;
     border-radius: 4px;
     margin-bottom: 16px;
-    background-color: #f8f8f8;
+    background-color: transparent;
     border: none;
     max-height: 400px;
 }
