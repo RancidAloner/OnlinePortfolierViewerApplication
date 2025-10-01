@@ -1,18 +1,5 @@
-// Artwork data structure
-interface Artwork {
-    id: string;
-    title: string;
-    year?: string;
-    image: string;
-    description?: string;
-}
-
-// Category data structure
-interface Category {
-    name: string;
-    displayName: string;
-    artworks: Artwork[];
-}
+// Import portfolio data
+import { portfolioCategories, getDisplayName, scanCategoryArtworks, Artwork, Category } from './portfolio-data.js';
 
 // Portfolio data - will be populated dynamically
 let portfolioData: Record<string, Category> = {};
@@ -51,15 +38,11 @@ class PortfolioApp {
 
     private async loadPortfolioData(): Promise<void> {
         try {
-            // For GitHub Pages, we'll use a predefined list of categories
-            // since we can't dynamically read directory listings
-            const predefinedCategories = ['2d', '3d', 'fibers', 'sketchbook', 'curatorial'];
-            
-            console.log('Loading predefined categories for GitHub Pages:', predefinedCategories);
+            console.log('Loading dynamic categories:', portfolioCategories);
 
-            // Create categories for each predefined folder
-            predefinedCategories.forEach(folder => {
-                const displayName = this.formatDisplayName(folder);
+            // Create categories for each folder found in portfolio directory
+            portfolioCategories.forEach(folder => {
+                const displayName = getDisplayName(folder);
                 portfolioData[folder] = {
                     name: folder,
                     displayName: displayName,
@@ -84,11 +67,12 @@ class PortfolioApp {
     }
 
     private createDefaultCategories(): void {
-        const defaultCategories = ['2d', '3d', 'fibers', 'sketchbook', 'curatorial'];
+        // Fallback to hardcoded categories if dynamic loading fails
+        const defaultCategories = ['fiber art', 'garments', 'graphics', 'illustration'];
         defaultCategories.forEach(category => {
             portfolioData[category] = {
                 name: category,
-                displayName: this.formatDisplayName(category),
+                displayName: getDisplayName(category),
                 artworks: []
             };
         });
@@ -99,18 +83,6 @@ class PortfolioApp {
         };
     }
 
-    private formatDisplayName(name: string): string {
-        // Convert folder names to display names
-        const displayNames: Record<string, string> = {
-            '2d': '2D',
-            '3d': '3D',
-            'fibers': 'Fibers',
-            'sketchbook': 'Sketchbook',
-            'curatorial': 'Curatorial'
-        };
-        
-        return displayNames[name] || name.charAt(0).toUpperCase() + name.slice(1);
-    }
 
     private generateNavigation(): void {
         console.log('Generating navigation for:', portfolioData);
@@ -237,27 +209,9 @@ class PortfolioApp {
 
     private async loadCategoryArtworks(categoryName: string): Promise<void> {
         try {
-            // For GitHub Pages, we'll use predefined artwork lists
-            // since we can't dynamically read directory listings
-            const predefinedArtworks: Record<string, Artwork[]> = {
-                '2d': [
-                    { id: 'gun', title: 'Gun', image: '2d/GUN.png' }
-                ],
-                '3d': [
-                    { id: 'sculpture', title: '3D Sculpture', image: '3d/IMG_8302.png' }
-                ],
-                'curatorial': [
-                    { id: 'curatorial-work', title: 'Curatorial Work', image: 'curatorial/IMG_8305.png' }
-                ],
-                'test': [
-                    { id: 'kingdom', title: 'Kingdom', image: 'test/KINGDOM.png' }
-                ],
-                'fibers': [],
-                'sketchbook': []
-            };
-            
-            const artworks = predefinedArtworks[categoryName] || [];
-            console.log(`Loaded ${artworks.length} predefined artworks for category: ${categoryName}`);
+            // Use the dynamic scanning function to get artworks
+            const artworks = scanCategoryArtworks(categoryName);
+            console.log(`Loaded ${artworks.length} artworks for category: ${categoryName}`);
 
             // Update portfolio data with artworks
             portfolioData[categoryName].artworks = artworks;
@@ -271,14 +225,6 @@ class PortfolioApp {
         }
     }
 
-    private generateTitleFromFileName(fileName: string): string {
-        // Remove extension and convert to title case
-        const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
-        return nameWithoutExt
-            .split(/[-_]/)
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ');
-    }
 
     private updateNavigation(): void {
         this.navLinks.forEach(link => {

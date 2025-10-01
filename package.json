@@ -4,10 +4,11 @@
   "description": "A lightweight TypeScript art portfolio application",
   "main": "index.html",
   "scripts": {
+    "prebuild": "node scripts/generate-portfolio-data.js",
     "build": "tsc",
     "dev": "tsc --watch",
-    "serve": "npx http-server . -p 3000 -o --proxy http://localhost:3000?",
-    "build:gh-pages": "tsc && echo 'Build complete for GitHub Pages'"
+    "serve": "npx http-server . -p 3000 -o -c-1 --proxy http://localhost:3000?",
+    "build:gh-pages": "npm run prebuild && tsc && echo 'Build complete for GitHub Pages'"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
