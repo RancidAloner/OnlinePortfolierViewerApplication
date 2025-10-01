@@ -1,0 +1,21 @@
+{
+  "name": "ferris-art-portfolio",
+  "version": "1.0.0",
+  "description": "A lightweight TypeScript art portfolio application",
+  "main": "index.html",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "serve": "npx http-server . -p 3000 -o --proxy http://localhost:3000?"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "http-server": "^14.1.1"
+  },
+  "keywords": ["portfolio", "art", "typescript"],
+  "author": "Ferris Halemeh",
+  "license": "MIT"
+}
+
+
