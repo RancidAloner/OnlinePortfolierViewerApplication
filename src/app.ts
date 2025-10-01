@@ -115,6 +115,7 @@ class PortfolioApp {
         this.generateNavigation();
         this.initializeEventListeners();
         this.initializeRouting();
+        this.initializeHomeNavigation();
         
         // Start prefetching images in the background
         this.startImagePrefetching();
@@ -266,6 +267,35 @@ class PortfolioApp {
         });
     }
 
+    private initializeHomeNavigation(): void {
+        // Make the artist name clickable to go to home
+        const artistName = document.querySelector('.artist-name') as HTMLElement;
+        if (artistName) {
+            artistName.style.cursor = 'pointer';
+            artistName.addEventListener('click', () => {
+                this.navigateToPage('home');
+            });
+        }
+
+        // Make the logo/rose image clickable to go to home
+        const logoImage = document.querySelector('.logo-image') as HTMLElement;
+        if (logoImage) {
+            logoImage.style.cursor = 'pointer';
+            logoImage.addEventListener('click', () => {
+                this.navigateToPage('home');
+            });
+        }
+
+        // Make the entire logo container clickable
+        const logoContainer = document.querySelector('.logo') as HTMLElement;
+        if (logoContainer) {
+            logoContainer.style.cursor = 'pointer';
+            logoContainer.addEventListener('click', () => {
+                this.navigateToPage('home');
+            });
+        }
+    }
+
     private initializeRouting(): void {
         // Handle browser back/forward buttons
         window.addEventListener('popstate', (event) => {
@@ -303,22 +333,25 @@ class PortfolioApp {
         // Handle hash-based routing for GitHub Pages
         const hash = window.location.hash.replace('#', '');
         
-        // If no hash or empty hash, default to first available category
-        if (hash === '') {
-            const firstCategory = Object.keys(portfolioData).find(cat => cat !== 'about');
-            return firstCategory || 'fiber art';
+        if (hash === '' || hash === 'home') {
+            return 'home';
         }
         
-        return hash;
+        return hash || 'home';
     }
 
     private navigateToPage(category: string, pushToHistory: boolean = true): void {
         if (pushToHistory) {
             // Use hash-based routing for GitHub Pages compatibility
-            window.history.pushState({ category }, '', `#${category}`);
+            const url = category === 'home' ? '#' : `#${category}`;
+            window.history.pushState({ category }, '', url);
         }
 
-        this.loadCategory(category);
+        if (category === 'home') {
+            this.loadHomePage();
+        } else {
+            this.loadCategory(category);
+        }
     }
 
     private async loadCategory(categoryName: string): Promise<void> {
@@ -332,7 +365,7 @@ class PortfolioApp {
         this.updateNavigation();
         this.updatePageTitle(category.displayName);
         
-        // Show sidebar for all categories
+        // Show sidebar for all categories except home
         this.showSidebar();
         
         // Load artworks dynamically for this category
@@ -361,7 +394,7 @@ class PortfolioApp {
     private updateNavigation(): void {
         this.navLinks.forEach(link => {
             const category = link.getAttribute('data-category');
-            if (category === this.currentCategory) {
+            if (category === this.currentCategory || (category === 'home' && this.currentCategory === '')) {
                 link.classList.add('active');
             } else {
                 link.classList.remove('active');
@@ -442,7 +475,70 @@ class PortfolioApp {
         return artworkDiv;
     }
 
+    private loadHomePage(): void {
+        // Hide sidebar and adjust main content
+        this.hideSidebar();
+        
+        // Update navigation state
+        this.currentCategory = '';
+        this.updateNavigation();
+        this.updatePageTitle('');
+        
+        this.artworkGrid.innerHTML = `
+            <div class="home-page">
+                <div class="home-content">
+                    <nav class="home-navigation">
+                        ${this.generateHomeNavigation()}
+                    </nav>
+                </div>
+            </div>
+        `;
+        
+        // Add event listeners for home navigation links
+        this.initializeHomeNavigationListeners();
+    }
 
+    private initializeHomeNavigationListeners(): void {
+        const homeNavLinks = document.querySelectorAll('.home-nav-link');
+        homeNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const category = link.getAttribute('data-category');
+                if (category) {
+                    this.navigateToPage(category);
+                }
+            });
+        });
+    }
+
+    private generateHomeNavigation(): string {
+        const nameItem = `
+            <div class="home-name">
+                Ferris Halemeh
+            </div>
+        `;
+        
+        const categoryLinks = Object.values(portfolioData)
+            .filter(category => category.name !== 'about')
+            .map(category => `
+                <a href="#" class="home-nav-link" data-category="${category.name}">
+                    ${category.displayName}
+                </a>
+            `).join('');
+        
+        return nameItem + categoryLinks;
+    }
+
+    private hideSidebar(): void {
+        const sidebar = document.querySelector('.sidebar') as HTMLElement;
+        const mainContent = document.querySelector('.main-content') as HTMLElement;
+        
+        if (sidebar && mainContent) {
+            sidebar.style.display = 'none';
+            mainContent.style.marginLeft = '0';
+            mainContent.style.maxWidth = '100vw';
+        }
+    }
 
     private showSidebar(): void {
         const sidebar = document.querySelector('.sidebar') as HTMLElement;

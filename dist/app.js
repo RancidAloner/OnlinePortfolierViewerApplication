@@ -92,6 +92,7 @@ class PortfolioApp {
         this.generateNavigation();
         this.initializeEventListeners();
         this.initializeRouting();
+        this.initializeHomeNavigation();
         // Start prefetching images in the background
         this.startImagePrefetching();
         // Load the appropriate page based on URL
@@ -219,6 +220,32 @@ class PortfolioApp {
             });
         });
     }
+    initializeHomeNavigation() {
+        // Make the artist name clickable to go to home
+        const artistName = document.querySelector('.artist-name');
+        if (artistName) {
+            artistName.style.cursor = 'pointer';
+            artistName.addEventListener('click', () => {
+                this.navigateToPage('home');
+            });
+        }
+        // Make the logo/rose image clickable to go to home
+        const logoImage = document.querySelector('.logo-image');
+        if (logoImage) {
+            logoImage.style.cursor = 'pointer';
+            logoImage.addEventListener('click', () => {
+                this.navigateToPage('home');
+            });
+        }
+        // Make the entire logo container clickable
+        const logoContainer = document.querySelector('.logo');
+        if (logoContainer) {
+            logoContainer.style.cursor = 'pointer';
+            logoContainer.addEventListener('click', () => {
+                this.navigateToPage('home');
+            });
+        }
+    }
     initializeRouting() {
         // Handle browser back/forward buttons
         window.addEventListener('popstate', (event) => {
@@ -250,19 +277,23 @@ class PortfolioApp {
     getCategoryFromPath(path) {
         // Handle hash-based routing for GitHub Pages
         const hash = window.location.hash.replace('#', '');
-        // If no hash or empty hash, default to first available category
-        if (hash === '') {
-            const firstCategory = Object.keys(portfolioData).find(cat => cat !== 'about');
-            return firstCategory || 'fiber art';
+        if (hash === '' || hash === 'home') {
+            return 'home';
         }
-        return hash;
+        return hash || 'home';
     }
     navigateToPage(category, pushToHistory = true) {
         if (pushToHistory) {
             // Use hash-based routing for GitHub Pages compatibility
-            window.history.pushState({ category }, '', `#${category}`);
+            const url = category === 'home' ? '#' : `#${category}`;
+            window.history.pushState({ category }, '', url);
         }
-        this.loadCategory(category);
+        if (category === 'home') {
+            this.loadHomePage();
+        }
+        else {
+            this.loadCategory(category);
+        }
     }
     async loadCategory(categoryName) {
         const category = portfolioData[categoryName];
@@ -273,7 +304,7 @@ class PortfolioApp {
         this.currentCategory = categoryName;
         this.updateNavigation();
         this.updatePageTitle(category.displayName);
-        // Show sidebar for all categories
+        // Show sidebar for all categories except home
         this.showSidebar();
         // Load artworks dynamically for this category
         await this.loadCategoryArtworks(categoryName);
@@ -297,7 +328,7 @@ class PortfolioApp {
     updateNavigation() {
         this.navLinks.forEach(link => {
             const category = link.getAttribute('data-category');
-            if (category === this.currentCategory) {
+            if (category === this.currentCategory || (category === 'home' && this.currentCategory === '')) {
                 link.classList.add('active');
             }
             else {
@@ -365,6 +396,61 @@ class PortfolioApp {
             artworkDiv.appendChild(yearDiv);
         }
         return artworkDiv;
+    }
+    loadHomePage() {
+        // Hide sidebar and adjust main content
+        this.hideSidebar();
+        // Update navigation state
+        this.currentCategory = '';
+        this.updateNavigation();
+        this.updatePageTitle('');
+        this.artworkGrid.innerHTML = `
+            <div class="home-page">
+                <div class="home-content">
+                    <nav class="home-navigation">
+                        ${this.generateHomeNavigation()}
+                    </nav>
+                </div>
+            </div>
+        `;
+        // Add event listeners for home navigation links
+        this.initializeHomeNavigationListeners();
+    }
+    initializeHomeNavigationListeners() {
+        const homeNavLinks = document.querySelectorAll('.home-nav-link');
+        homeNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const category = link.getAttribute('data-category');
+                if (category) {
+                    this.navigateToPage(category);
+                }
+            });
+        });
+    }
+    generateHomeNavigation() {
+        const nameItem = `
+            <div class="home-name">
+                Ferris Halemeh
+            </div>
+        `;
+        const categoryLinks = Object.values(portfolioData)
+            .filter(category => category.name !== 'about')
+            .map(category => `
+                <a href="#" class="home-nav-link" data-category="${category.name}">
+                    ${category.displayName}
+                </a>
+            `).join('');
+        return nameItem + categoryLinks;
+    }
+    hideSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        if (sidebar && mainContent) {
+            sidebar.style.display = 'none';
+            mainContent.style.marginLeft = '0';
+            mainContent.style.maxWidth = '100vw';
+        }
     }
     showSidebar() {
         const sidebar = document.querySelector('.sidebar');
