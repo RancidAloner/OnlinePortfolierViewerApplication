@@ -109,12 +109,6 @@ class PortfolioApp {
                     artworks: [] // Will be populated when category is loaded
                 };
             });
-            // Always add About page
-            portfolioData['about'] = {
-                name: 'about',
-                displayName: 'About',
-                artworks: []
-            };
             console.log('Portfolio data loaded:', portfolioData);
         }
         catch (error) {
@@ -133,11 +127,6 @@ class PortfolioApp {
                 artworks: []
             };
         });
-        portfolioData['about'] = {
-            name: 'about',
-            displayName: 'About',
-            artworks: []
-        };
     }
     startImagePrefetching() {
         // Show a subtle progress indicator
@@ -203,25 +192,18 @@ class PortfolioApp {
     generateNavigation() {
         console.log('Generating navigation for:', portfolioData);
         this.navContainer.innerHTML = '';
-        // Add Home link first
-        const homeLi = document.createElement('li');
-        const homeA = document.createElement('a');
-        homeA.href = '#';
-        homeA.setAttribute('data-category', 'home');
-        homeA.className = 'nav-link';
-        homeA.textContent = 'Home';
-        homeLi.appendChild(homeA);
-        this.navContainer.appendChild(homeLi);
-        // Add other categories
+        // Add only portfolio categories (exclude 'about')
         Object.values(portfolioData).forEach(category => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = '#';
-            a.setAttribute('data-category', category.name);
-            a.className = 'nav-link';
-            a.textContent = category.displayName;
-            li.appendChild(a);
-            this.navContainer.appendChild(li);
+            if (category.name !== 'about') {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#';
+                a.setAttribute('data-category', category.name);
+                a.className = 'nav-link';
+                a.textContent = category.displayName;
+                li.appendChild(a);
+                this.navContainer.appendChild(li);
+            }
         });
         this.navLinks = document.querySelectorAll('.nav-link');
         console.log('Navigation generated, found', this.navLinks.length, 'links');
@@ -268,23 +250,19 @@ class PortfolioApp {
     getCategoryFromPath(path) {
         // Handle hash-based routing for GitHub Pages
         const hash = window.location.hash.replace('#', '');
-        if (hash === '' || hash === 'home') {
-            return 'home';
+        // If no hash or empty hash, default to first available category
+        if (hash === '') {
+            const firstCategory = Object.keys(portfolioData).find(cat => cat !== 'about');
+            return firstCategory || 'fiber art';
         }
-        return hash || 'home';
+        return hash;
     }
     navigateToPage(category, pushToHistory = true) {
         if (pushToHistory) {
             // Use hash-based routing for GitHub Pages compatibility
-            const url = category === 'home' ? '#' : `#${category}`;
-            window.history.pushState({ category }, '', url);
+            window.history.pushState({ category }, '', `#${category}`);
         }
-        if (category === 'home') {
-            this.loadHomePage();
-        }
-        else {
-            this.loadCategory(category);
-        }
+        this.loadCategory(category);
     }
     async loadCategory(categoryName) {
         const category = portfolioData[categoryName];
@@ -295,15 +273,10 @@ class PortfolioApp {
         this.currentCategory = categoryName;
         this.updateNavigation();
         this.updatePageTitle(category.displayName);
-        // Show sidebar for all categories except home
+        // Show sidebar for all categories
         this.showSidebar();
-        if (categoryName === 'about') {
-            this.loadAboutPage();
-        }
-        else {
-            // Load artworks dynamically for this category
-            await this.loadCategoryArtworks(categoryName);
-        }
+        // Load artworks dynamically for this category
+        await this.loadCategoryArtworks(categoryName);
     }
     async loadCategoryArtworks(categoryName) {
         try {
@@ -324,7 +297,7 @@ class PortfolioApp {
     updateNavigation() {
         this.navLinks.forEach(link => {
             const category = link.getAttribute('data-category');
-            if (category === this.currentCategory || (category === 'home' && this.currentCategory === '')) {
+            if (category === this.currentCategory) {
                 link.classList.add('active');
             }
             else {
@@ -392,77 +365,6 @@ class PortfolioApp {
             artworkDiv.appendChild(yearDiv);
         }
         return artworkDiv;
-    }
-    loadHomePage() {
-        // Hide sidebar and adjust main content
-        this.hideSidebar();
-        // Update navigation state
-        this.currentCategory = '';
-        this.updateNavigation();
-        this.updatePageTitle('');
-        this.artworkGrid.innerHTML = `
-            <div class="home-page">
-                <div class="home-content">
-                    <nav class="home-navigation">
-                        ${this.generateHomeNavigation()}
-                    </nav>
-                </div>
-            </div>
-        `;
-        // Add event listeners for home navigation links
-        this.initializeHomeNavigationListeners();
-    }
-    loadAboutPage() {
-        // Show sidebar and adjust main content
-        this.showSidebar();
-        this.artworkGrid.innerHTML = `
-            <div class="about-content">
-                <p>Welcome to my art portfolio. I am Ferris Halemeh, an artist working across multiple mediums including 2D works, 3D sculptures, fiber arts, and sketchbook explorations.</p>
-                <p>My work explores themes of identity, memory, and the intersection of digital and physical spaces. Through various mediums, I seek to create connections between different forms of expression and experience.</p>
-                <p>Please explore the different categories to view my work across these various disciplines.</p>
-            </div>
-        `;
-    }
-    initializeHomeNavigationListeners() {
-        const homeNavLinks = document.querySelectorAll('.home-nav-link');
-        homeNavLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const category = link.getAttribute('data-category');
-                if (category) {
-                    this.navigateToPage(category);
-                }
-            });
-        });
-    }
-    generateHomeNavigation() {
-        const nameItem = `
-            <div class="home-name">
-                Ferris Halemeh
-            </div>
-        `;
-        const categoryLinks = Object.values(portfolioData)
-            .filter(category => category.name !== 'about')
-            .map(category => `
-                <a href="#" class="home-nav-link" data-category="${category.name}">
-                    ${category.displayName}
-                </a>
-            `).join('');
-        const aboutLink = `
-            <a href="#" class="home-nav-link" data-category="about">
-                About
-            </a>
-        `;
-        return nameItem + categoryLinks + aboutLink;
-    }
-    hideSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.querySelector('.main-content');
-        if (sidebar && mainContent) {
-            sidebar.style.display = 'none';
-            mainContent.style.marginLeft = '0';
-            mainContent.style.maxWidth = '100vw';
-        }
     }
     showSidebar() {
         const sidebar = document.querySelector('.sidebar');
