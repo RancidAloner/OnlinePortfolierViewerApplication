@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferris Halemeh - Art Portfolio</title>
+    <link rel="icon" type="image/webp" href="assets/poppy.webp" sizes="32x32">
+    <link rel="icon" type="image/webp" href="assets/poppy.webp" sizes="16x16">
+    <link rel="apple-touch-icon" href="assets/poppy.webp" sizes="180x180">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // GitHub Pages 404 redirect for SPA routing
+        // This script will redirect to the main page and let the client-side router handle the route
+        sessionStorage.redirect = location.href;
+    </script>
+    <meta http-equiv="refresh" content="0;URL='/'" />
+</head>
+<body>
+    <div class="container">
+        <!-- Left Navigation Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="assets/poppy.webp" alt="Poppy" class="logo-image">
+                </div>
+            </div>
+            <div class="artist-name">Ferris Halemeh</div>
+            <ul class="nav-links">
+                <!-- Navigation links will be generated dynamically -->
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <h1 class="page-title" id="page-title">Loading...</h1>
+            <div class="artwork-grid" id="artwork-grid">
+                <!-- Artwork items will be dynamically loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="dist/app.js?v=3"></script>
+</body>
+</html>
+
