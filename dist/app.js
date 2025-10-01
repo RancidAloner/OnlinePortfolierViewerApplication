@@ -27,47 +27,12 @@ class PortfolioApp {
     }
     async loadPortfolioData() {
         try {
-            // Fetch the portfolio folder structure with cache busting
-            const response = await fetch(`/portfolio/?t=${Date.now()}`);
-            if (!response.ok) {
-                throw new Error('Could not fetch portfolio data');
-            }
-            const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const links = doc.querySelectorAll('a[href]');
-            // Extract folder names from the directory listing
-            const folders = [];
-            console.log(`Processing ${links.length} links for portfolio folders`);
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                console.log(`Found portfolio link: ${href}`);
-                if (href && href !== '../' && href !== '..') {
-                    // Remove query parameters and check if it's a folder
-                    const cleanHref = href.split('?')[0];
-                    if (cleanHref.endsWith('/')) {
-                        // Remove ./ prefix and trailing slash
-                        const folderName = cleanHref.replace(/^\.\//, '').replace(/\/$/, '');
-                        console.log(`Processing folder: ${folderName}`);
-                        if (folderName && folderName !== 'README.md' && folderName !== '..') {
-                            console.log(`Adding folder: ${folderName}`);
-                            folders.push(folderName);
-                        }
-                        else {
-                            console.log(`Skipping folder: ${folderName}`);
-                        }
-                    }
-                    else {
-                        console.log(`Skipping non-folder link: ${href}`);
-                    }
-                }
-                else {
-                    console.log(`Skipping non-folder link: ${href}`);
-                }
-            });
-            console.log('Found folders:', folders);
-            // Create categories for each folder
-            folders.forEach(folder => {
+            // For GitHub Pages, we'll use a predefined list of categories
+            // since we can't dynamically read directory listings
+            const predefinedCategories = ['2d', '3d', 'fibers', 'sketchbook', 'curatorial'];
+            console.log('Loading predefined categories for GitHub Pages:', predefinedCategories);
+            // Create categories for each predefined folder
+            predefinedCategories.forEach(folder => {
                 const displayName = this.formatDisplayName(folder);
                 portfolioData[folder] = {
                     name: folder,
@@ -159,6 +124,14 @@ class PortfolioApp {
         });
     }
     handleInitialRoute() {
+        // Check if we have a redirect from 404.html
+        if (sessionStorage.redirect) {
+            const redirectPath = sessionStorage.redirect;
+            sessionStorage.removeItem('redirect');
+            const category = this.getCategoryFromPath(redirectPath);
+            this.navigateToPage(category, false);
+            return;
+        }
         const path = window.location.pathname;
         const category = this.getCategoryFromPath(path);
         this.navigateToPage(category, false); // Don't push to history for initial load
@@ -171,10 +144,16 @@ class PortfolioApp {
     getCategoryFromPath(path) {
         // Remove leading slash and get the category
         const cleanPath = path.replace(/^\//, '');
-        if (cleanPath === '' || cleanPath === 'home') {
+        // Handle GitHub Pages base path if needed
+        const basePath = window.location.pathname.includes('/OnlinePortfolierViewerApplication/')
+            ? '/OnlinePortfolierViewerApplication/'
+            : '/';
+        if (cleanPath === '' || cleanPath === 'home' || cleanPath === 'index.html') {
             return 'home';
         }
-        return cleanPath;
+        // Remove base path if present
+        const category = cleanPath.replace(basePath.replace(/^\//, ''), '');
+        return category || 'home';
     }
     navigateToPage(category, pushToHistory = true) {
         if (pushToHistory) {
@@ -209,53 +188,27 @@ class PortfolioApp {
     }
     async loadCategoryArtworks(categoryName) {
         try {
-            // Always fetch fresh directory listing to get current files
-            const response = await fetch(`/portfolio/${categoryName}/?t=${Date.now()}`);
-            if (!response.ok) {
-                throw new Error(`Could not fetch ${categoryName} artworks`);
-            }
-            const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const links = doc.querySelectorAll('a[href]');
-            const artworks = [];
-            console.log(`Processing ${links.length} links for category: ${categoryName}`);
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                console.log(`Found link: ${href}`);
-                if (href && href !== '../' && href !== '..') {
-                    // Remove query parameters
-                    const cleanHref = href.split('?')[0];
-                    if (!cleanHref.endsWith('/')) {
-                        // Remove ./ prefix from filename
-                        const fileName = cleanHref.replace(/^\.\//, '');
-                        const fileExtension = fileName.split('.').pop()?.toLowerCase();
-                        console.log(`Processing file: ${fileName}, extension: ${fileExtension}`);
-                        // Only include image files
-                        if (fileExtension && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
-                            const title = this.generateTitleFromFileName(fileName);
-                            console.log(`Adding artwork: ${title} (${fileName})`);
-                            artworks.push({
-                                id: fileName.replace(/\.[^/.]+$/, ''), // Remove extension
-                                title: title,
-                                image: `${categoryName}/${fileName}`
-                            });
-                        }
-                        else {
-                            console.log(`Skipping non-image file: ${fileName}`);
-                        }
-                    }
-                    else {
-                        console.log(`Skipping folder link: ${href}`);
-                    }
-                }
-                else {
-                    console.log(`Skipping link: ${href}`);
-                }
-            });
-            console.log(`Total artworks found: ${artworks.length}`);
-            // Clear any cached artworks and update with fresh data
-            portfolioData[categoryName].artworks = [];
+            // For GitHub Pages, we'll use predefined artwork lists
+            // since we can't dynamically read directory listings
+            const predefinedArtworks = {
+                '2d': [
+                    { id: 'gun', title: 'Gun', image: '2d/GUN.png' }
+                ],
+                '3d': [
+                    { id: 'sculpture', title: '3D Sculpture', image: '3d/IMG_8302.png' }
+                ],
+                'curatorial': [
+                    { id: 'curatorial-work', title: 'Curatorial Work', image: 'curatorial/IMG_8305.png' }
+                ],
+                'test': [
+                    { id: 'kingdom', title: 'Kingdom', image: 'test/KINGDOM.png' }
+                ],
+                'fibers': [],
+                'sketchbook': []
+            };
+            const artworks = predefinedArtworks[categoryName] || [];
+            console.log(`Loaded ${artworks.length} predefined artworks for category: ${categoryName}`);
+            // Update portfolio data with artworks
             portfolioData[categoryName].artworks = artworks;
             this.loadArtworkGrid(artworks);
         }

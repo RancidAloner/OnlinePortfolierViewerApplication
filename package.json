@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "serve": "npx http-server . -p 3000 -o --proxy http://localhost:3000?"
+    "serve": "npx http-server . -p 3000 -o --proxy http://localhost:3000?",
+    "build:gh-pages": "tsc && echo 'Build complete for GitHub Pages'"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
