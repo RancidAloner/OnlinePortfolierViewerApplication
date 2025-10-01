@@ -138,6 +138,12 @@ class PortfolioApp {
                 };
             });
 
+            // Always add Related Works page
+            portfolioData['related-works'] = {
+                name: 'related-works',
+                displayName: 'Related Works',
+                artworks: []
+            };
 
             console.log('Portfolio data loaded:', portfolioData);
 
@@ -158,6 +164,13 @@ class PortfolioApp {
                 artworks: []
             };
         });
+        
+        // Always add Related Works page
+        portfolioData['related-works'] = {
+            name: 'related-works',
+            displayName: 'Related Works',
+            artworks: []
+        };
     }
 
     private startImagePrefetching(): void {
@@ -236,19 +249,17 @@ class PortfolioApp {
         console.log('Generating navigation for:', portfolioData);
         this.navContainer.innerHTML = '';
         
-        // Add only portfolio categories (exclude 'about')
+        // Add all categories including Related Works
         Object.values(portfolioData).forEach(category => {
-            if (category.name !== 'about') {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = '#';
-                a.setAttribute('data-category', category.name);
-                a.className = 'nav-link';
-                a.textContent = category.displayName;
-                
-                li.appendChild(a);
-                this.navContainer.appendChild(li);
-            }
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '#';
+            a.setAttribute('data-category', category.name);
+            a.className = 'nav-link';
+            a.textContent = category.displayName;
+            
+            li.appendChild(a);
+            this.navContainer.appendChild(li);
         });
         
         this.navLinks = document.querySelectorAll('.nav-link') as NodeListOf<HTMLElement>;
@@ -368,8 +379,12 @@ class PortfolioApp {
         // Show sidebar for all categories except home
         this.showSidebar();
         
-        // Load artworks dynamically for this category
-        await this.loadCategoryArtworks(categoryName);
+        if (categoryName === 'related-works') {
+            this.loadRelatedWorksPage();
+        } else {
+            // Load artworks dynamically for this category
+            await this.loadCategoryArtworks(categoryName);
+        }
     }
 
     private async loadCategoryArtworks(categoryName: string): Promise<void> {
@@ -519,7 +534,6 @@ class PortfolioApp {
         `;
         
         const categoryLinks = Object.values(portfolioData)
-            .filter(category => category.name !== 'about')
             .map(category => `
                 <a href="#" class="home-nav-link" data-category="${category.name}">
                     ${category.displayName}
@@ -527,6 +541,27 @@ class PortfolioApp {
             `).join('');
         
         return nameItem + categoryLinks;
+    }
+
+    private loadRelatedWorksPage(): void {
+        this.artworkGrid.innerHTML = `
+            <div class="related-works-content">
+                <div class="related-works-links">
+                    <a href="https://downtownbookstore.org/" target="_blank" rel="noopener noreferrer" class="related-link bookstore-link">
+                        www.downtownbookstore.org
+                    </a>
+                    <a href="https://ferris.studio/" target="_blank" rel="noopener noreferrer" class="related-link ferris-link">
+                        www.ferris.studio
+                    </a>
+                    <a href="https://www.instagram.com/downtownbookstore.0rg/" target="_blank" rel="noopener noreferrer" class="related-link instagram-link">
+                        www.instagram.com/downtownbookstore.0rg
+                    </a>
+                    <a href="https://www.youtube.com/@book-likers-club" target="_blank" rel="noopener noreferrer" class="related-link youtube-link">
+                        www.youtube.com/@book-likers-club
+                    </a>
+                </div>
+            </div>
+        `;
     }
 
     private hideSidebar(): void {
