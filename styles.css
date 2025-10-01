@@ -116,18 +116,17 @@ body {
     align-items: center;
     justify-content: flex-start;
     text-align: center;
-    min-height: 100%;
+    height: 100%;
 }
 
 .artwork-image {
     width: 100%;
-    height: auto;
+    height: 300px;
     object-fit: contain;
     border-radius: 4px;
     margin-bottom: 16px;
     background-color: transparent;
     border: none;
-    max-height: 400px;
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -141,6 +140,7 @@ body {
     text-align: center;
     width: 100%;
     line-height: 1.3;
+    min-height: 1.3em;
 }
 
 .artwork-year {
@@ -148,6 +148,7 @@ body {
     color: #666666;
     text-align: center;
     width: 100%;
+    min-height: 1.2em;
 }
 
 /* Home page styles */
