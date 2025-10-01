@@ -1,7 +1,75 @@
 // Import portfolio data
-import { portfolioCategories, getDisplayName, scanCategoryArtworks } from './portfolio-data.js';
+import { portfolioCategories, getDisplayName, scanCategoryArtworks, categoryArtworks } from './portfolio-data.js';
 // Portfolio data - will be populated dynamically
 let portfolioData = {};
+// Image prefetching utility
+class ImagePrefetcher {
+    constructor() {
+        this.prefetchedImages = new Set();
+        this.prefetchPromises = new Map();
+        this.totalImages = 0;
+        this.loadedImages = 0;
+        this.calculateTotalImages();
+    }
+    calculateTotalImages() {
+        // Count all images across all categories
+        Object.values(categoryArtworks).forEach(artworks => {
+            this.totalImages += artworks.length;
+        });
+    }
+    async prefetchAllImages() {
+        console.log(`Starting to prefetch ${this.totalImages} images...`);
+        const prefetchPromises = [];
+        // Prefetch all images from all categories
+        Object.values(categoryArtworks).forEach(artworks => {
+            artworks.forEach(artwork => {
+                const imagePath = `portfolio/${artwork.image}`;
+                if (!this.prefetchedImages.has(imagePath)) {
+                    prefetchPromises.push(this.prefetchImage(imagePath));
+                }
+            });
+        });
+        // Wait for all images to be prefetched
+        try {
+            await Promise.all(prefetchPromises);
+            console.log(`Successfully prefetched ${this.loadedImages} images`);
+        }
+        catch (error) {
+            console.warn('Some images failed to prefetch:', error);
+        }
+    }
+    async prefetchImage(imagePath) {
+        if (this.prefetchedImages.has(imagePath) || this.prefetchPromises.has(imagePath)) {
+            return;
+        }
+        const promise = new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                this.prefetchedImages.add(imagePath);
+                this.loadedImages++;
+                console.log(`Prefetched image ${this.loadedImages}/${this.totalImages}: ${imagePath}`);
+                resolve();
+            };
+            img.onerror = () => {
+                console.warn(`Failed to prefetch image: ${imagePath}`);
+                resolve(); // Don't reject, just continue with other images
+            };
+            img.src = imagePath;
+        });
+        this.prefetchPromises.set(imagePath, promise);
+        return promise;
+    }
+    isImagePrefetched(imagePath) {
+        return this.prefetchedImages.has(imagePath);
+    }
+    getProgress() {
+        return {
+            loaded: this.loadedImages,
+            total: this.totalImages,
+            percentage: this.totalImages > 0 ? Math.round((this.loadedImages / this.totalImages) * 100) : 0
+        };
+    }
+}
 // Application class
 class PortfolioApp {
     constructor() {
@@ -10,6 +78,7 @@ class PortfolioApp {
         this.pageTitle = document.getElementById('page-title');
         this.artworkGrid = document.getElementById('artwork-grid');
         this.navContainer = document.querySelector('.nav-links');
+        this.imagePrefetcher = new ImagePrefetcher();
         this.initializePortfolio();
     }
     async initializePortfolio() {
@@ -23,6 +92,8 @@ class PortfolioApp {
         this.generateNavigation();
         this.initializeEventListeners();
         this.initializeRouting();
+        // Start prefetching images in the background
+        this.startImagePrefetching();
         // Load the appropriate page based on URL
         this.handleInitialRoute();
     }
@@ -67,6 +138,67 @@ class PortfolioApp {
             displayName: 'About',
             artworks: []
         };
+    }
+    startImagePrefetching() {
+        // Show a subtle progress indicator
+        this.showPrefetchProgress();
+        // Start prefetching images in the background without blocking the UI
+        this.imagePrefetcher.prefetchAllImages().then(() => {
+            console.log('All images have been prefetched successfully');
+            this.hidePrefetchProgress();
+        }).catch(error => {
+            console.warn('Image prefetching encountered errors:', error);
+            this.hidePrefetchProgress();
+        });
+    }
+    showPrefetchProgress() {
+        // Create a subtle progress indicator
+        const progressContainer = document.createElement('div');
+        progressContainer.id = 'prefetch-progress';
+        progressContainer.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        `;
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = `
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.3s ease;
+        `;
+        progressContainer.appendChild(progressBar);
+        document.body.appendChild(progressContainer);
+        // Fade in the progress bar
+        setTimeout(() => {
+            progressContainer.style.opacity = '1';
+        }, 100);
+        // Update progress periodically
+        const updateProgress = () => {
+            const progress = this.imagePrefetcher.getProgress();
+            progressBar.style.width = `${progress.percentage}%`;
+            if (progress.percentage < 100) {
+                setTimeout(updateProgress, 200);
+            }
+        };
+        setTimeout(updateProgress, 200);
+    }
+    hidePrefetchProgress() {
+        const progressContainer = document.getElementById('prefetch-progress');
+        if (progressContainer) {
+            progressContainer.style.opacity = '0';
+            setTimeout(() => {
+                if (progressContainer.parentNode) {
+                    progressContainer.parentNode.removeChild(progressContainer);
+                }
+            }, 300);
+        }
     }
     generateNavigation() {
         console.log('Generating navigation for:', portfolioData);
@@ -221,6 +353,20 @@ class PortfolioApp {
         img.className = 'artwork-image';
         img.src = `portfolio/${artwork.image}`;
         img.alt = artwork.title;
+        // Check if image is already prefetched
+        const imagePath = `portfolio/${artwork.image}`;
+        if (this.imagePrefetcher.isImagePrefetched(imagePath)) {
+            // Image is already cached, it should load instantly
+            img.style.opacity = '1';
+        }
+        else {
+            // Image might not be prefetched yet, add loading effect
+            img.style.opacity = '0.7';
+            img.style.transition = 'opacity 0.3s ease';
+            img.onload = () => {
+                img.style.opacity = '1';
+            };
+        }
         img.onerror = () => {
             // Fallback for missing images
             img.style.display = 'none';

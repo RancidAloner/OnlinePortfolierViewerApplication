@@ -6,16 +6,14 @@ export const portfolioCategories = [
     "fiber art",
     "garments",
     "graphics",
-    "illustration",
-    "test12"
+    "illustration"
 ];
 // Display name mapping
 export const displayNameMap = {
     'fiber art': 'Fiber Art',
     'garments': 'Garments',
     'graphics': 'Graphics',
-    'illustration': 'Illustration',
-    'test12': 'Test12'
+    'illustration': 'Illustration'
 };
 // Pre-generated artwork data for each category
 export const categoryArtworks = {
@@ -265,13 +263,6 @@ export const categoryArtworks = {
             "id": "illustration-7",
             "title": "Versus2.0014",
             "image": "illustration/Versus2.0014.jpg"
-        }
-    ],
-    "test12": [
-        {
-            "id": "test12-1",
-            "title": "Arena2.0005",
-            "image": "test12/Arena2.0005.jpg"
         }
     ]
 };
