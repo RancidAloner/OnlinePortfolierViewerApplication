@@ -290,7 +290,7 @@ class PortfolioApp {
         // Update navigation state
         this.currentCategory = '';
         this.updateNavigation();
-        this.updatePageTitle('Ferris Halemeh');
+        this.updatePageTitle('');
         this.artworkGrid.innerHTML = `
             <div class="home-page">
                 <div class="home-content">
@@ -327,6 +327,11 @@ class PortfolioApp {
         });
     }
     generateHomeNavigation() {
+        const nameItem = `
+            <div class="home-name">
+                Ferris Halemeh
+            </div>
+        `;
         const categoryLinks = Object.values(portfolioData)
             .filter(category => category.name !== 'about')
             .map(category => `
@@ -339,7 +344,7 @@ class PortfolioApp {
                 About
             </a>
         `;
-        return categoryLinks + aboutLink;
+        return nameItem + categoryLinks + aboutLink;
     }
     hideSidebar() {
         const sidebar = document.querySelector('.sidebar');

@@ -143,17 +143,43 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    background-image: url('assets/homebackground.png');
+    background-size: 30%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.home-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 1;
 }
 
 .home-content {
     text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.home-title {
+    font-size: 36px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 8px;
+    font-style: italic;
 }
 
 .home-navigation {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
 }
 
 .home-nav-link {
@@ -163,10 +189,19 @@ body {
     text-decoration: none;
     transition: color 0.2s ease;
     cursor: pointer;
+    font-style: italic;
 }
 
 .home-nav-link:hover {
     color: #666666;
+}
+
+.home-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333333;
+    margin-bottom: 32px;
+    font-style: italic;
 }
 
 /* About page styles */

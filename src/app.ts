@@ -355,7 +355,7 @@ class PortfolioApp {
         // Update navigation state
         this.currentCategory = '';
         this.updateNavigation();
-        this.updatePageTitle('Ferris Halemeh');
+        this.updatePageTitle('');
         
         this.artworkGrid.innerHTML = `
             <div class="home-page">
@@ -398,6 +398,12 @@ class PortfolioApp {
     }
 
     private generateHomeNavigation(): string {
+        const nameItem = `
+            <div class="home-name">
+                Ferris Halemeh
+            </div>
+        `;
+        
         const categoryLinks = Object.values(portfolioData)
             .filter(category => category.name !== 'about')
             .map(category => `
@@ -412,7 +418,7 @@ class PortfolioApp {
             </a>
         `;
         
-        return categoryLinks + aboutLink;
+        return nameItem + categoryLinks + aboutLink;
     }
 
     private hideSidebar(): void {
