@@ -122,6 +122,10 @@ class PortfolioApp {
         window.addEventListener('popstate', (event) => {
             this.handleRouteChange();
         });
+        // Handle hash changes for GitHub Pages compatibility
+        window.addEventListener('hashchange', (event) => {
+            this.handleRouteChange();
+        });
     }
     handleInitialRoute() {
         // Check if we have a redirect from 404.html
@@ -132,32 +136,27 @@ class PortfolioApp {
             this.navigateToPage(category, false);
             return;
         }
-        const path = window.location.pathname;
-        const category = this.getCategoryFromPath(path);
+        // Use hash-based routing for GitHub Pages
+        const category = this.getCategoryFromPath('');
         this.navigateToPage(category, false); // Don't push to history for initial load
     }
     handleRouteChange() {
-        const path = window.location.pathname;
-        const category = this.getCategoryFromPath(path);
+        // Use hash-based routing for GitHub Pages
+        const category = this.getCategoryFromPath('');
         this.navigateToPage(category, false); // Don't push to history for popstate
     }
     getCategoryFromPath(path) {
-        // Remove leading slash and get the category
-        const cleanPath = path.replace(/^\//, '');
-        // Handle GitHub Pages base path if needed
-        const basePath = window.location.pathname.includes('/OnlinePortfolierViewerApplication/')
-            ? '/OnlinePortfolierViewerApplication/'
-            : '/';
-        if (cleanPath === '' || cleanPath === 'home' || cleanPath === 'index.html') {
+        // Handle hash-based routing for GitHub Pages
+        const hash = window.location.hash.replace('#', '');
+        if (hash === '' || hash === 'home') {
             return 'home';
         }
-        // Remove base path if present
-        const category = cleanPath.replace(basePath.replace(/^\//, ''), '');
-        return category || 'home';
+        return hash || 'home';
     }
     navigateToPage(category, pushToHistory = true) {
         if (pushToHistory) {
-            const url = category === 'home' ? '/' : `/${category}`;
+            // Use hash-based routing for GitHub Pages compatibility
+            const url = category === 'home' ? '#' : `#${category}`;
             window.history.pushState({ category }, '', url);
         }
         if (category === 'home') {
