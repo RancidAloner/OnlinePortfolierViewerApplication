@@ -372,6 +372,11 @@ class PortfolioApp {
         img.className = 'artwork-image';
         img.src = `portfolio/${artwork.image}`;
         img.alt = artwork.title;
+        img.style.cursor = 'pointer';
+        // Add click handler for lightbox
+        img.addEventListener('click', () => {
+            this.openLightbox(artwork);
+        });
         // Check if image is already prefetched
         const imagePath = `portfolio/${artwork.image}`;
         if (this.imagePrefetcher.isImagePrefetched(imagePath)) {
@@ -411,6 +416,67 @@ class PortfolioApp {
             artworkDiv.appendChild(yearDiv);
         }
         return artworkDiv;
+    }
+    openLightbox(artwork) {
+        // Create lightbox overlay
+        const lightbox = document.createElement('div');
+        lightbox.className = 'lightbox-overlay';
+        lightbox.id = 'lightbox';
+        // Create lightbox content
+        const lightboxContent = document.createElement('div');
+        lightboxContent.className = 'lightbox-content';
+        // Create close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'lightbox-close';
+        closeButton.innerHTML = '×';
+        closeButton.addEventListener('click', () => {
+            this.closeLightbox();
+        });
+        // Create image
+        const lightboxImg = document.createElement('img');
+        lightboxImg.className = 'lightbox-image';
+        lightboxImg.src = `portfolio/${artwork.image}`;
+        lightboxImg.alt = artwork.title;
+        // Create title
+        const lightboxTitle = document.createElement('div');
+        lightboxTitle.className = 'lightbox-title';
+        lightboxTitle.textContent = artwork.title;
+        // Assemble lightbox
+        lightboxContent.appendChild(closeButton);
+        lightboxContent.appendChild(lightboxImg);
+        lightboxContent.appendChild(lightboxTitle);
+        lightbox.appendChild(lightboxContent);
+        // Add to document
+        document.body.appendChild(lightbox);
+        // Add click outside to close
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                this.closeLightbox();
+            }
+        });
+        // Add escape key to close
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeLightbox();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+        // Fade in
+        setTimeout(() => {
+            lightbox.style.opacity = '1';
+        }, 10);
+    }
+    closeLightbox() {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox) {
+            lightbox.style.opacity = '0';
+            setTimeout(() => {
+                if (lightbox.parentNode) {
+                    lightbox.parentNode.removeChild(lightbox);
+                }
+            }, 300);
+        }
     }
     loadHomePage() {
         // Hide sidebar and adjust main content
